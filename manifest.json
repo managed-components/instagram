@@ -1,0 +1,44 @@
+{
+  "name": "instagramEmbed",
+  "namespace": "instagramembed",
+  "description": "A Managed Component to embed Insragram posts on websites",
+  "icon": "assets/instagram.svg",
+  "permissions": {
+    "execute_unsafe_scripts": {
+      "description": "This permission is used to facilitate better a user experience.",
+      "required": true
+    },
+    "client_network_requests": {
+      "description": "This permission is used to facilitate better a user experience.",
+      "required": true
+    },
+    "serve_static_files": {
+      "description": "This permission is used to facilitate better a user experience.",
+      "required": true
+    },
+    "provide_server_functionality": {
+      "description": "This permission is used to facilitate better a user experience.",
+      "required": true
+    },
+    "provide_widget": {
+      "description": "This permission is used to facilitate better a user experience.",
+      "required": true
+    },
+    "provide_client_events": {
+      "description": "This permission is used to facilitate better a user experience.",
+      "required": true
+    },
+    "provide_manager_events": {
+      "description": "This permission is used to facilitate better a user experience.",
+      "required": true
+    },
+    "provide_user_events": {
+      "description": "This permission is used to facilitate better a user experience.",
+      "required": true
+    },
+    "provide_pageviews": {
+      "description": "This permission is used to facilitate better a user experience.",
+      "required": true
+    }
+  }
+}
