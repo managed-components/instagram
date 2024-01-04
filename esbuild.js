@@ -11,5 +11,6 @@ require('esbuild').buildSync({
   loader: {
     '.html': 'text',
     '.js': 'text',
-  }
+    '.css': 'text',
+  },
 })
