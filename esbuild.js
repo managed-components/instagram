@@ -8,9 +8,5 @@ require('esbuild').buildSync({
   target: ['esnext'],
   tsconfig: 'tsconfig.build.json',
   outfile: 'dist/index.js',
-  loader: {
-    '.html': 'text',
-    '.js': 'text',
-    '.css': 'text',
-  },
+  loader: {},
 })
