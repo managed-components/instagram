@@ -1,9 +1,10 @@
 import { Manager } from '@managed-components/types'
 import * as cheerio from 'cheerio'
+// import { UAParser } from 'ua-parser-js'
 
 // function to fetch images
-export async function getImg(manager: Manager, imgEndpoint: string) {
-  const response = await manager.fetch(imgEndpoint, {
+export async function getImg(manager: Manager, endpoint: string) {
+  const response = await manager.fetch(endpoint, {
     headers: {
       Accept: 'image/jpeg,image/png,image/*,*/*;q=0.8',
       'User-Agent':
@@ -93,10 +94,6 @@ export async function getCss(manager: Manager, postHtml: string) {
       /url\(\/rsrc/g,
       'url(http://localhost:1337/webcm/instagram/css/rsrc'
     )
-    console.log(
-      '!@#$!@$!@$!@#$!@$!@$!@#$!@$!@$!@#$!@$!@$!@#$!@$!@$!@#$!@$!@$!@#$!@$!@$ this is combinedCss: ',
-      combinedCss
-    )
     return combinedCss
   }
 
@@ -110,6 +107,8 @@ export async function getCss(manager: Manager, postHtml: string) {
 // function to fetch html content
 // make sure to grab user agent from client + update the rest of the manager.fetch() functions to use similar headers
 export async function getHtml(manager: Manager, htmlEndpoint: string) {
+  // const parsedUserAgent = new UAParser(client.userAgent)
+
   const response = await manager.fetch(htmlEndpoint, {
     headers: {
       accept:
@@ -117,15 +116,15 @@ export async function getHtml(manager: Manager, htmlEndpoint: string) {
       'accept-language': 'en-US,en;q=0.9',
       'cache-control': 'no-cache',
       'sec-ch-ua':
-        '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-      'sec-ch-ua-mobile': '?0',
-      'sec-ch-ua-platform': '"macOS"',
+        '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"', // I guess this should be dynamic, but I am not sure how to make it so
+      'sec-ch-ua-mobile': '?0', // same
+      'sec-ch-ua-platform': '"macOS"', // Should probably be: `${parsedUserAgent.getOS().name}`,
       'sec-fetch-dest': 'iframe',
       'sec-fetch-mode': 'navigate',
       'sec-fetch-site': 'none', // if I change to "cross-site" it fails
       'upgrade-insecure-requests': '1',
       'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', // `${parsedUserAgent.getUA()}`,
     },
     method: 'GET',
   })
@@ -183,7 +182,7 @@ export async function updateHtml(postHtml: string) {
 </style>`)
   $('*').each(function () {
     const element = $(this)
-    const node = this as any // Type assertion to 'any'
+    const node = this as any // ?? Not sure how to get rid of this type assertion to any
 
     // Iterate over each attribute of the element
     if (node.attribs) {

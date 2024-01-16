@@ -1,7 +1,6 @@
 import mustache from 'mustache'
 import { Manager } from '@managed-components/types'
 import { getImg, getCss, getHtml, updateHtml } from './utils'
-// import postCssTry from './templates/post-css-try.css'
 
 export default async function (manager: Manager) {
   // define route to fetch and cache images from css
@@ -9,7 +8,7 @@ export default async function (manager: Manager) {
     const cssPath = request.url.split('/webcm/instagram/css')[1]
     const cssEndpoint = 'https://static.cdninstagram.com' + cssPath
     return manager
-      .useCache(`css-${cssPath}`, () => getImg(manager, cssEndpoint), 600)
+      .useCache(`css-${cssPath}`, () => getImg(manager, cssEndpoint), 600) // cacheing does not work
       .then((cachedImage: Blob) => {
         return new Response(cachedImage, {
           headers: { 'Content-Type': 'image/jpeg' },
@@ -48,14 +47,14 @@ export default async function (manager: Manager) {
     const cleanUrl = postUrl.origin + postUrl.pathname
 
     const htmlEndpoint = cleanUrl + 'embed/' + isCaptioned(captions)
-    const postHtml = await getHtml(manager, htmlEndpoint)
-    const postCss = await getCss(manager, postHtml)
+    const postHtml = await getHtml(manager, htmlEndpoint) // can't make the fetch dynamic
+    const postCss = await getCss(manager, postHtml) // I am getting some rrrors _probably_ due to the await Promise.all 
 
     const updatedHtml = await updateHtml(postHtml)
 
     const output = mustache.render(updatedHtml, {
-      'post-css': postCss,
+      'post-css': postCss, // post CSS is still too big
     })
-    return output
+    return output // I think we are making it larger due to how we embed the iframe
   })
 }
