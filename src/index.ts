@@ -38,23 +38,23 @@ export default async function (manager: Manager) {
   // registerEmbed for Instagram post that grabs content from the html
   manager.registerEmbed('post', async ({ parameters }) => {
     const captions = parameters['captions'] as string
-    const isCaptioned = (captions: string) => {
+    const isCaptioned = (captions: string) => { // note to self: check that uncaptioned works just as fine
       return captions ? 'captioned/' : ''
     }
 
-    const postUrlString = parameters['post-url'] as string
+    const postUrlString = parameters['post-url'] as string // note to self: check that different posts works just as fine
     const postUrl = new URL(postUrlString)
     const cleanUrl = postUrl.origin + postUrl.pathname
 
     const htmlEndpoint = cleanUrl + 'embed/' + isCaptioned(captions)
-    const postHtml = await getHtml(manager, htmlEndpoint) // can't make the fetch dynamic
-    const postCss = await getCss(manager, postHtml) // I am getting some rrrors _probably_ due to the await Promise.all 
+    const postHtml = await getHtml(manager, htmlEndpoint) // can't make the fetch dynamic, bc client is empty, I think
+    const postCss = await getCss(manager, postHtml) // I am getting some errors _probably_ due to the await Promise.all 
 
     const updatedHtml = await updateHtml(postHtml)
 
     const output = mustache.render(updatedHtml, {
-      'post-css': postCss, // post CSS is still too big
+      'post-css': postCss, // post CSS is still too big, I need to clean the CSS -- HOW?!?
     })
-    return output // I think we are making it larger due to how we embed the iframe
+    return output // I think we are making it larger due to how we embed the iframe using this method: src="data:text/html;charset=UTF-8,%3C!DOCTYPE%20html%3E...
   })
 }
