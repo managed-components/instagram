@@ -1,14 +1,18 @@
-import { Manager } from '@managed-components/types'
+import { Client, Manager } from '@managed-components/types'
 import * as cheerio from 'cheerio'
 // import { UAParser } from 'ua-parser-js'
 
 // function to fetch images
-export async function getImg(manager: Manager, endpoint: string) {
+export async function getImg(
+  manager: Manager,
+  endpoint: string,
+  client: Client
+) {
+  console.log('cashe does not work! endpoint is: ', endpoint)
   const response = await manager.fetch(endpoint, {
     headers: {
       Accept: 'image/jpeg,image/png,image/*,*/*;q=0.8',
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+      'User-Agent': client.userAgent,
       'cache-control': 'max-age=0',
       dpr: '2',
       'sec-ch-prefers-color-scheme': 'dark',
@@ -35,18 +39,26 @@ export async function getImg(manager: Manager, endpoint: string) {
   })
 
   // Check the Content-Type header to see if it's an image
-  const contentType = response.headers.get('Content-Type')
+  if (response) {
+    const contentType = response.headers.get('Content-Type')
 
-  // Proceed only if the response is OK and content type is an image
-  if (response.ok && contentType && contentType.startsWith('image/')) {
-    return response.blob()
-  } else {
-    throw new Error('Fetched content is not an image or response is not OK')
+    // Proceed only if the response is OK and content type is an image
+    if (
+      response &&
+      response.ok &&
+      contentType &&
+      contentType.startsWith('image/')
+    ) {
+      return response.blob()
+    } else {
+      throw new Error('Fetched content is not an image or response is not OK')
+    }
   }
 }
 
 // function to fetch css stylsheets and combine them together in JS var
 export async function getCss(manager: Manager, postHtml: string) {
+
   // Load HTML string with cheerio
   const $ = cheerio.load(postHtml)
 
@@ -54,6 +66,7 @@ export async function getCss(manager: Manager, postHtml: string) {
   const cssUrls = $('link[rel="stylesheet"]')
     .map((i, el) => $(el).attr('href'))
     .get()
+    .filter(url => typeof url === 'string')
   async function fetchAndCombineCss(urls: string[]): Promise<string> {
     const cssContents = await Promise.all(
       urls.map(url =>
@@ -106,9 +119,11 @@ export async function getCss(manager: Manager, postHtml: string) {
 
 // function to fetch html content
 // make sure to grab user agent from client + update the rest of the manager.fetch() functions to use similar headers
-export async function getHtml(manager: Manager, htmlEndpoint: string) {
-  // const parsedUserAgent = new UAParser(client.userAgent)
-
+export async function getHtml(
+  manager: Manager,
+  htmlEndpoint: string,
+  client: Client
+) {
   const response = await manager.fetch(htmlEndpoint, {
     headers: {
       accept:
@@ -123,20 +138,19 @@ export async function getHtml(manager: Manager, htmlEndpoint: string) {
       'sec-fetch-mode': 'navigate',
       'sec-fetch-site': 'none', // if I change to "cross-site" it fails
       'upgrade-insecure-requests': '1',
-      'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', // `${parsedUserAgent.getUA()}`,
+      'User-Agent': client.userAgent,
     },
     method: 'GET',
   })
 
-  const myHtml = await response.text()
+  const myHtml = await response?.text()
   return myHtml
 }
 // function to update the html
 export async function updateHtml(postHtml: string) {
   const $ = cheerio.load(postHtml)
 
-  $('link, script').remove()
+  $('link, script').remove() // remove scripts
 
   $('img[src*="scontent.cdninstagram.com"]').each((i, el) => {
     const img = $(el)
