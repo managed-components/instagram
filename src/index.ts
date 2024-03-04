@@ -45,29 +45,27 @@ export default async function (manager: Manager, client: Client) {
 
   manager.registerEmbed('instagram-post', async ({ parameters }) => {
     const captions = parameters['captions'] as string
-    const isCaptioned = (captions: string) => {
-      // note to self: check that uncaptioned works just as fine
-      return captions ? 'captioned/' : ''
-    }
+    const isCaptioned = (captions: string) =>
+      captions === 'true' ? 'captioned/' : ''
 
-    const postUrlString = parameters['post-url'] as string // note to self: check that different posts works just as fine
+    const postUrlString = parameters['post-url'] as string 
     const postUrl = new URL(postUrlString)
     const cleanUrl = postUrl.origin + postUrl.pathname
 
     const htmlEndpoint = cleanUrl + 'embed/' + isCaptioned(captions)
-    const postHtml = await getHtml(manager, htmlEndpoint, client) // can't make the fetch dynamic, bc client is empty, I think
+    const postHtml = await getHtml(manager, htmlEndpoint, client)
     if (postHtml) {
-      const postCss = await getCss(manager, postHtml) // I am getting some errors _probably_ due to the await Promise.all
+      const postCss = await getCss(manager, postHtml)
 
       const updatedHtml = await updateHtml(postHtml)
 
       const output = mustache.render(updatedHtml, {
-        'post-css': postCss, // post CSS is still too big, I need to clean the CSS -- HOW?!?
+        'post-css': postCss, 
       })
-      return output // I `think we are making it larger due to how we embed the iframe using this method: src="data:text/html;charset=UTF-8,%3C!DOCTYPE%20html%3E...
+      return output 
     } else {
       // Return a default string or handle the undefined case more gracefully
-      return 'Post could not be loaded' // Ensure we always return a string
+      return 'Post could not be loaded' 
     }
   })
 }
