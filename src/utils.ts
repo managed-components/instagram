@@ -8,11 +8,12 @@ export async function getImg(
   endpoint: string,
   client: Client
 ) {
-  console.log('cashe does not work! endpoint is: ', endpoint)
   const response = await manager.fetch(endpoint, {
     headers: {
       Accept: 'image/jpeg,image/png,image/*,*/*;q=0.8',
-      'User-Agent': client.userAgent,
+      'User-Agent':
+        client?.userAgent ||
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
       'cache-control': 'max-age=0',
       dpr: '2',
       'sec-ch-prefers-color-scheme': 'dark',
@@ -58,7 +59,6 @@ export async function getImg(
 
 // function to fetch css stylsheets and combine them together in JS var
 export async function getCss(manager: Manager, postHtml: string) {
-
   // Load HTML string with cheerio
   const $ = cheerio.load(postHtml)
 
@@ -99,7 +99,7 @@ export async function getCss(manager: Manager, postHtml: string) {
             mode: 'cors',
             credentials: 'include',
           })
-          .then(response => response.text())
+          ?.then(response => response.text())
       )
     )
     let combinedCss = cssContents.join('\n\n') // Combine all CSS contents
@@ -138,7 +138,9 @@ export async function getHtml(
       'sec-fetch-mode': 'navigate',
       'sec-fetch-site': 'none', // if I change to "cross-site" it fails
       'upgrade-insecure-requests': '1',
-      'User-Agent': client.userAgent,
+      'User-Agent':
+        client?.userAgent ||
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
     },
     method: 'GET',
   })

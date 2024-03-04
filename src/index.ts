@@ -1,5 +1,5 @@
 import mustache from 'mustache'
-import { Manager, Client } from '@managed-components/types'
+import { Client, Manager } from '@managed-components/types'
 import { getImg, getCss, getHtml, updateHtml } from './utils'
 
 export default async function (manager: Manager, client: Client) {
@@ -43,7 +43,7 @@ export default async function (manager: Manager, client: Client) {
       })
   })
 
-  manager.registerEmbed('instagram-post', async ({ parameters, client }) => {
+  manager.registerEmbed('instagram-post', async ({ parameters }) => {
     const captions = parameters['captions'] as string
     const isCaptioned = (captions: string) => {
       // note to self: check that uncaptioned works just as fine
