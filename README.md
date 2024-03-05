@@ -1,4 +1,4 @@
-# instagramEmbed Managed Component
+# Instagram Managed Component
 
 ## Documentation
 
@@ -20,17 +20,44 @@ Find out more about Managed Components [here](https://blog.cloudflare.com/zaraz-
 
 > Settings are used to configure the tool in a Component Manager config file
 
-### Example Setting `boolean`
-
-`exampleSetting` can be the pixelID or any other essential/optional setting like the option to anonymize IPs, send ecommerce events etc.
+No settings are required to use the Instagram Managed Components.
 
 ## 🧱 Fields Description
 
 > Fields are properties that can/must be sent with certain events
 
-### Human Readable Field Name `type` _required_
+No fields are processed by the Instagram Managed Components.
 
-`field_id` give it a short description and send to a more detailed reference [Find more about how to create your own Managed Component](https://managedcomponents.dev/).
+## ⎙ Embeds
+
+This Managed Components uses the [Embeds API](https://managedcomponents.dev/specs/embed-and-widgets/embeds) to render Instagram posts on a web page, and accepts the folowing HTML attributes:
+
+### Component Embed `HTML Attribute` _required_
+
+The MC looks for the `instagram-post` string as the name of the Embed.
+
+### Post URL `HTML Attribute` _required_
+
+Specify the post you wish to render using the `post-url` attribute. Use the full URL, excluding any query parameters.
+
+### Captions `HTML Attribute` _optional_
+
+Use the `captions` attribute to determine whether to include post captions. If captions are set to true, the MC will render the post including its captions. Otherwise, it will render the post without captions.
+
+_Example:_ To place an embed on a page using WebCM, use a placeholder div element with the following attributes:
+
+```html
+<div
+  data-component-embed="instagram-instagram-post"
+  data-post-url="https://www.instagram.com/p/C3Sk6d2MTjI/"
+  captions="true"
+></div>
+```
+
+### Support
+
+This MC only supports the rendering an image, text, captions and post details. Posts that include an image gallery and/or videos will be rendered as a single image post.
+◊
 
 ## 📝 License
 

@@ -1,6 +1,6 @@
 {
-  "name": "instagramEmbed",
-  "namespace": "instagramembed",
+  "name": "instagram",
+  "namespace": "instagram",
   "description": "A Managed Component to embed Insragram posts on websites",
   "icon": "assets/instagram.svg",
   "permissions": {
