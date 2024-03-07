@@ -30,30 +30,40 @@ No fields are processed by the Instagram Managed Components.
 
 ## ⎙ Embeds
 
-This Managed Components uses the [Embeds API](https://managedcomponents.dev/specs/embed-and-widgets/embeds) to render Instagram posts on a web page, and accepts the folowing HTML attributes:
+### Instagram Post
+<img width="383" alt="image" src="https://github.com/managed-components/instagram/assets/90049335/479253bc-93a8-49c3-8f35-276ff20d62ce">
 
-### Component Embed `HTML Attribute` _required_
 
-The MC looks for the `instagram-post` string as the name of the Embed.
+This Managed Components uses the [Embeds API](https://managedcomponents.dev/specs/embed-and-widgets/embeds) to render Instagram posts on a web page, with its embed `instagram-post`. This Embed accepts the folowing parameters:
 
-### Post URL `HTML Attribute` _required_
+#### Post URL _required_
 
-Specify the post you wish to render using the `post-url` attribute. Use the full URL, excluding any query parameters.
+Specify the post you wish to render using the `post-url` parameter. The value should hold the full URL, excluding any query parameters.
 
-### Captions `HTML Attribute` _optional_
+#### Captions _optional_
 
-Use the `captions` attribute to determine whether to include post captions. If captions are set to true, the MC will render the post including its captions. Otherwise, it will render the post without captions.
+Use the `captions` parameter to determine whether to include post captions. If captions parameter is set to true, the MC will render the post including its captions. Otherwise, it will render the post without captions.
 
-_Example:_ To place an embed on a page using WebCM, use a placeholder div element with the following attributes:
+---
+**Examples:**
+1. To place an embed on a page using WebCM, use a placeholder div element with the following attributes:
 
-```html
-<div
-  data-component-embed="instagram-instagram-post"
-  data-post-url="https://www.instagram.com/p/C3Sk6d2MTjI/"
-  captions="true"
-></div>
-```
+  ```html
+  <div
+    data-component-embed="instagram-instagram-post"
+    data-post-url="https://www.instagram.com/p/C3Sk6d2MTjI/"
+    data-captions="true"
+  ></div>
+  ```
+2.  To place an embed on a page using Cloudflare Zaraz, use a placeholder `instagram-post` HTML element with the following attributes:
 
+  ```html
+  <instagram-post
+    component="instagram"
+    post-url="https://www.instagram.com/p/C3Sk6d2MTjI/"
+    captions="true"
+  ></instagram-post>
+  ```
 ### Support
 
 This MC only supports the rendering an image, text, captions and post details. Posts that include an image gallery and/or videos will be rendered as a single image post.
