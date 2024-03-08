@@ -43,12 +43,12 @@ export default async function (manager: Manager, client: Client) {
       })
   })
 
-  manager.registerEmbed('instagram-post', async ({ parameters }) => {
+  manager.registerEmbed('post', async ({ parameters }) => {
     const captions = parameters['captions'] as string
     const isCaptioned = (captions: string) =>
       captions === 'true' ? 'captioned/' : ''
 
-    const postUrlString = parameters['post-url'] as string 
+    const postUrlString = parameters['post-url'] as string
     const postUrl = new URL(postUrlString)
     const cleanUrl = postUrl.origin + postUrl.pathname
 
@@ -60,12 +60,12 @@ export default async function (manager: Manager, client: Client) {
       const updatedHtml = await updateHtml(postHtml)
 
       const output = mustache.render(updatedHtml, {
-        'post-css': postCss, 
+        'post-css': postCss,
       })
-      return output 
+      return output
     } else {
       // Return a default string or handle the undefined case more gracefully
-      return 'Post could not be loaded' 
+      return 'Post could not be loaded'
     }
   })
 }
