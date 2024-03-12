@@ -1,7 +1,7 @@
 {
   "name": "instagram",
   "version": "1.0.0",
-  "description": "A Managed Component to embed Insragram posts on websites",
+  "description": "A Managed Component to embed Instagram posts on websites",
   "main": "dist/index.js",
   "scripts": {
     "lint": "eslint --ext .ts,.js, src",
@@ -36,7 +36,6 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
-    "mustache": "^4.2.0",
-    "ua-parser-js": "^1.0.37"
+    "mustache": "^4.2.0"
   }
 }
