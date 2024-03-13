@@ -1,62 +1,64 @@
 import { Client, Manager } from '@managed-components/types'
 import * as cheerio from 'cheerio'
 
+// function to convert arrayBuffer to string
+function _arrayBufferToBase64(arrayBuffer: ArrayBuffer) {
+  var binary = ''
+  var bytes = new Uint8Array(arrayBuffer)
+  var len = bytes.byteLength
+  for (var i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return btoa(binary)
+}
+
 // function to fetch images
 export async function getImg(
   manager: Manager,
   endpoint: string,
   client: Client
 ) {
-  const response = await manager.fetch(endpoint, {
-    headers: {
-      authority: 'scontent.cdninstagram.com',
-      accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-      'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
-      'cache-control': 'no-cache',
-      pragma: 'no-cache',
-      'sec-ch-ua':
-        '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
-      'sec-ch-ua-mobile': '?0',
-      'sec-ch-ua-platform': '"macOS"',
-      'sec-fetch-dest': 'document',
-      'sec-fetch-mode': 'navigate',
-      'sec-fetch-site': 'none',
-      'sec-fetch-user': '?1',
-      'upgrade-insecure-requests': '1',
-      'user-agent':
-        client?.userAgent ||
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-    },
-    method: 'GET',
-  })
-
-  // Check the Content-Type header to see if it's an image
-  if (response) {
-    const contentType = response.headers.get('Content-Type')
-    // Proceed only if the response is OK and content type is an image
-    if (
-      response &&
-      response.ok &&
-      contentType &&
-      contentType.startsWith('image/')
-    ) {
-      const arrayBuffer = await response.arrayBuffer()
-      const base64String = btoa(
-        String.fromCharCode(...new Uint8Array(arrayBuffer))
-      )
-      return base64String
-    } else {
-      throw new Error('Fetched content is not an image or response is not OK')
+  try {
+    const response = await manager.fetch(endpoint, {
+      headers: {
+        authority: 'scontent.cdninstagram.com',
+        accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'sec-fetch-site': 'none',
+        'user-agent':
+          client?.userAgent ||
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      },
+      method: 'GET',
+    })
+    // Check the Content-Type header to see if it's an image
+    if (response) {
+      const contentType = response.headers.get('Content-Type')
+      if (
+        response &&
+        response.ok &&
+        contentType &&
+        contentType.startsWith('image/')
+      ) {
+        const arrayBuffer = await response.arrayBuffer()
+        const base64String = _arrayBufferToBase64(arrayBuffer)
+        return base64String
+      } else {
+        throw new Error('Fetched content is not an image or response is not OK')
+      }
     }
+  } catch (error) {
+    console.error('Error fetching image:', error)
+    throw error
   }
 }
 
 // function to fetch css stylsheets and combine them together in JS var
-export async function getCss(
+export async function getCSS(
   manager: Manager,
   postHtml: string,
-  client: Client
+  client: Client,
+  CSSRoute?: string
 ) {
   const hostName =
     client.url.hostname === 'localhost'
@@ -71,45 +73,38 @@ export async function getCss(
     .map((i, el) => $(el).attr('href'))
     .get()
     .filter(url => typeof url === 'string')
+
   async function fetchAndCombineCss(urls: string[]): Promise<string> {
     const cssContents = await Promise.all(
-      urls.map(url =>
-        manager
-          .fetch(url, {
+      urls.map(async url => {
+        try {
+          const response = await manager.fetch(url, {
             headers: {
               accept: 'text/css',
-              'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
-              'cache-control': 'max-age=0',
-              dpr: '2',
-              'sec-ch-prefers-color-scheme': 'dark',
-              'sec-ch-ua':
-                '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-              'sec-ch-ua-full-version-list':
-                '"Not_A Brand";v="8.0.0.0", "Chromium";v="120.0.6099.109", "Google Chrome";v="120.0.6099.109"',
-              'sec-ch-ua-mobile': '?0',
-              'sec-ch-ua-model': '""',
-              'sec-ch-ua-platform': '"macOS"',
-              'sec-ch-ua-platform-version': '"14.1.1"',
-              'sec-fetch-dest': 'document',
-              'sec-fetch-mode': 'navigate',
               'sec-fetch-site': 'none',
-              'sec-fetch-user': '?1',
-              'upgrade-insecure-requests': '1',
-              'viewport-width': '358',
             },
             method: 'GET',
           })
-          ?.then(response => response.text())
-      )
+          if (response && !response.ok) {
+            throw new Error(
+              `Failed to fetch CSS from ${url}, status: ${response.status}`
+            )
+          } else if (response?.ok) {
+            return await response.text()
+          }
+        } catch (error) {
+          console.error(`Error fetching CSS from ${url}:`, error)
+          return '' // Return an empty string to avoid disrupting the array of CSS contents
+        }
+      })
     )
+
     let combinedCss = cssContents.join('\n\n') // Combine all CSS contents
 
     // find images inside css and apply replace endpoint to route URL to load them from the same domain
     combinedCss = combinedCss.replace(
       /url\(\/rsrc/g,
-      (_match, path) =>
-        `${hostName}/cdn-cgi/zaraz/components/route/instagram_2c1b/css/rsrc/?q=` +
-        encodeURIComponent(path)
+      (_match, path) => `${hostName}${CSSRoute}?q=` + encodeURIComponent(path)
     )
     return combinedCss.replace(/%3Fq=/, '?q=')
   }
@@ -127,37 +122,35 @@ export async function getHtml(
   htmlEndpoint: string,
   client: Client
 ) {
-  const response = await manager.fetch(htmlEndpoint, {
-    headers: {
-      accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-      'accept-language': 'en-US,en;q=0.9',
-      'cache-control': 'no-cache',
-      pragma: 'no-cache',
-      dnt: '1',
-      'sec-ch-prefers-color-scheme': 'light',
-      'sec-ch-ua':
-        '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
-      'sec-ch-ua-mobile': '?0',
-      'sec-ch-ua-platform': '"macOS"',
-      'sec-ch-ua-platform-version': '"14.3.1"',
-      'sec-fetch-dest': 'document',
-      'sec-fetch-mode': 'navigate',
-      'sec-fetch-site': 'none',
-      'sec-fetch-user': '?1',
-      'upgrade-insecure-requests': '1',
-      'User-Agent':
-        client?.userAgent ||
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-      'viewport-width': '1440',
-    },
-    method: 'GET',
-  })
-  const myHtml = await response?.text()
-  return myHtml
+  try {
+    const response = await manager.fetch(htmlEndpoint, {
+      headers: {
+        accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'sec-fetch-site': 'none',
+        'User-Agent':
+          client?.userAgent ||
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      },
+      method: 'GET',
+    })
+    if (response?.ok) {
+      return await response.text()
+    } else {
+      throw new Error('Failed to fetch HTML content')
+    }
+  } catch (error) {
+    console.error('Error fetching HTML content:', error)
+    throw error
+  }
 }
+
 // function to update the html
-export async function updateHtml(postHtml: string, client: Client) {
+export function updateHtml(
+  postHtml: string,
+  client: Client,
+  imgRoute?: string
+) {
   const hostName =
     client.url.hostname === 'localhost'
       ? 'http://127.0.0.1:1337' // used for Zaraz testing
@@ -172,9 +165,7 @@ export async function updateHtml(postHtml: string, client: Client) {
     if (src) {
       const newSrc = src.replace(
         /^https:\/\/scontent.cdninstagram.com\/(.*)$/,
-        (_match, path) =>
-          `${hostName}/cdn-cgi/zaraz/components/route/instagram_2c1b/image/?q=` +
-          encodeURIComponent(path)
+        (_match, path) => `${hostName}${imgRoute}?q=` + encodeURIComponent(path)
       )
       img.attr('src', newSrc.replace(/%3Fq=/, '?q='))
     }
@@ -188,8 +179,7 @@ export async function updateHtml(postHtml: string, client: Client) {
           const newUrl = url.replace(
             /^https:\/\/scontent.cdninstagram.com\/(.*)$/,
             (_match, path) =>
-              `${hostName}/cdn-cgi/zaraz/components/route/instagram_2c1b/image/?q=` +
-              encodeURIComponent(path)
+              `${hostName}${imgRoute}?q=` + encodeURIComponent(path)
           )
           return `${newUrl} ${descriptor}`
         })

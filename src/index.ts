@@ -1,6 +1,6 @@
 import mustache from 'mustache'
 import { Client, Manager } from '@managed-components/types'
-import { getImg, getCss, getHtml, updateHtml } from './utils'
+import { getImg, getCSS, getHtml, updateHtml } from './utils'
 
 export default async function (manager: Manager, client: Client) {
   // function to use sha256
@@ -13,7 +13,7 @@ export default async function (manager: Manager, client: Client) {
   }
 
   // define route to fetch and cache images from css
-  manager.route('/css/rsrc/', async request => {
+  const CSSRoute = manager.route('/css/rsrc/', async request => {
     const url = new URL(request.url)
     let cssPath = '/' + url.searchParams.get('q')
     cssPath = cssPath ? decodeURIComponent(cssPath) : ''
@@ -25,7 +25,7 @@ export default async function (manager: Manager, client: Client) {
         `css-${cssBase}`,
         () => getImg(manager, cssEndpoint, client), //use getImg to fetch images
         600
-      ) // cacheing does not work
+      )
       .then((cachedImageBase64: string) => {
         // Convert Base64 string to ArrayBuffer
         const arrayBuffer = Uint8Array.from(atob(cachedImageBase64), c =>
@@ -44,9 +44,8 @@ export default async function (manager: Manager, client: Client) {
         return new Response(`Error: ${error}`, { status: 500 })
       })
   })
-
   // define route to fetch and cache imgages
-  manager.route('/image/', async request => {
+  const imgRoute = manager.route('/image/', async request => {
     const url = new URL(request.url)
     let imgPathQuery = '/' + url.searchParams.get('q')
     imgPathQuery = imgPathQuery ? decodeURIComponent(imgPathQuery) : ''
@@ -89,9 +88,8 @@ export default async function (manager: Manager, client: Client) {
     const htmlEndpoint = cleanUrl + 'embed/' + isCaptioned(captions)
     const postHtml = await getHtml(manager, htmlEndpoint, client)
     if (postHtml) {
-      const postCss = await getCss(manager, postHtml, client)
-      const updatedHtml = await updateHtml(postHtml, client)
-
+      const postCss = await getCSS(manager, postHtml, client, CSSRoute)
+      const updatedHtml = updateHtml(postHtml, client, imgRoute)
       const output = mustache.render(updatedHtml, {
         'post-css': postCss,
       })
