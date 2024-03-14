@@ -3,13 +3,23 @@ import * as cheerio from 'cheerio'
 
 // function to convert arrayBuffer to string
 function _arrayBufferToBase64(arrayBuffer: ArrayBuffer) {
-  var binary = ''
-  var bytes = new Uint8Array(arrayBuffer)
-  var len = bytes.byteLength
-  for (var i = 0; i < len; i++) {
+  let binary = ''
+  const bytes = new Uint8Array(arrayBuffer)
+  const len = bytes.byteLength
+  for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i])
   }
   return btoa(binary)
+}
+//function to determine hostname according to environment
+function hostName(client: Client) {
+  if (client?.url.hostname === 'localhost') {
+    return 'http://127.0.0.1:1337' // used for Zaraz testing
+  } else if (!client) {
+    return 'http://localhost:1337' // used for WebCM
+  } else if (client.url) {
+    return `http://${client.url.hostname}`
+  }
 }
 
 // function to fetch images
@@ -60,11 +70,6 @@ export async function getCSS(
   client: Client,
   CSSRoute?: string
 ) {
-  const hostName =
-    client.url.hostname === 'localhost'
-      ? 'http://127.0.0.1:1337' // used for Zaraz testing
-      : `http://${client.url.hostname}`
-
   // Load HTML string with cheerio
   const $ = cheerio.load(postHtml)
 
@@ -104,7 +109,8 @@ export async function getCSS(
     // find images inside css and apply replace endpoint to route URL to load them from the same domain
     combinedCss = combinedCss.replace(
       /url\(\/rsrc/g,
-      (_match, path) => `${hostName}${CSSRoute}?q=` + encodeURIComponent(path)
+      (_match, path) =>
+        `${hostName(client)}${CSSRoute}?q=` + encodeURIComponent(path)
     )
     return combinedCss.replace(/%3Fq=/, '?q=')
   }
@@ -151,10 +157,6 @@ export function updateHtml(
   client: Client,
   imgRoute?: string
 ) {
-  const hostName =
-    client.url.hostname === 'localhost'
-      ? 'http://127.0.0.1:1337' // used for Zaraz testing
-      : `http://${client.url.hostname}`
   const $ = cheerio.load(postHtml)
 
   $('link, script').remove() // remove scripts from html
@@ -165,7 +167,8 @@ export function updateHtml(
     if (src) {
       const newSrc = src.replace(
         /^https:\/\/scontent.cdninstagram.com\/(.*)$/,
-        (_match, path) => `${hostName}${imgRoute}?q=` + encodeURIComponent(path)
+        (_match, path) =>
+          `${hostName(client)}${imgRoute}?q=` + encodeURIComponent(path)
       )
       img.attr('src', newSrc.replace(/%3Fq=/, '?q='))
     }
@@ -179,7 +182,7 @@ export function updateHtml(
           const newUrl = url.replace(
             /^https:\/\/scontent.cdninstagram.com\/(.*)$/,
             (_match, path) =>
-              `${hostName}${imgRoute}?q=` + encodeURIComponent(path)
+              `${hostName(client)}${imgRoute}?q=` + encodeURIComponent(path)
           )
           return `${newUrl} ${descriptor}`
         })
