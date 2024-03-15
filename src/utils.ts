@@ -14,11 +14,11 @@ function _arrayBufferToBase64(arrayBuffer: ArrayBuffer) {
 //function to determine hostname according to environment
 function hostName(client: Client) {
   if (client?.url.hostname === 'localhost') {
-    return 'http://127.0.0.1:1337' // used for Zaraz testing
+    return 'https://127.0.0.1:1337' // used for Zaraz testing
   } else if (!client) {
-    return 'http://localhost:1337' // used for WebCM
+    return 'https://localhost:1337' // used for WebCM
   } else if (client.url) {
-    return `http://${client.url.hostname}`
+    return `https://${client.url.hostname}`
   }
 }
 
