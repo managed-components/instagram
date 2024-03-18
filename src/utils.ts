@@ -14,11 +14,11 @@ function _arrayBufferToBase64(arrayBuffer: ArrayBuffer) {
 //function to determine hostname according to environment
 function hostName(client: Client) {
   if (client?.url.hostname === 'localhost') {
-    return 'https://127.0.0.1:1337' // used for Zaraz testing
+    return 'http://127.0.0.1:1337' // used for Zaraz testing
   } else if (!client) {
-    return 'https://localhost:1337' // used for WebCM
+    return 'http://localhost:1337' // used for WebCM
   } else if (client.url) {
-    return `https://${client.url.hostname}`
+    return `${client.url.protocol}//${client.url.hostname}`
   }
 }
 
@@ -83,20 +83,27 @@ export async function getCSS(
     const cssContents = await Promise.all(
       urls.map(async url => {
         try {
-          const response = await manager.fetch(url, {
-            headers: {
-              accept: 'text/css',
-              'sec-fetch-site': 'none',
+          return await manager.useCache(
+            // cache css content
+            `css-${url}`,
+            async () => {
+              const response = await manager.fetch(url, {
+                headers: {
+                  accept: 'text/css',
+                  'sec-fetch-site': 'none',
+                },
+                method: 'GET',
+              })
+              if (response && !response.ok) {
+                throw new Error(
+                  `Failed to fetch CSS from ${url}, status: ${response.status}`
+                )
+              } else if (response?.ok) {
+                return await response.text()
+              }
             },
-            method: 'GET',
-          })
-          if (response && !response.ok) {
-            throw new Error(
-              `Failed to fetch CSS from ${url}, status: ${response.status}`
-            )
-          } else if (response?.ok) {
-            return await response.text()
-          }
+            600
+          )
         } catch (error) {
           console.error(`Error fetching CSS from ${url}:`, error)
           return '' // Return an empty string to avoid disrupting the array of CSS contents

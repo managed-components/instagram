@@ -1,17 +1,31 @@
 import mustache from 'mustache'
 import { Client, Manager } from '@managed-components/types'
 import { getImg, getCSS, getHtml, updateHtml } from './utils'
+import { UAParser } from 'ua-parser-js'
+
+// function to use sha256
+async function sha256(message: string) {
+  const msgUint8 = new TextEncoder().encode(message)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  return hashHex
+}
+
+//function to hash User Agent
+async function hashedUserAgent(client: Client) {
+  let hashInput = ''
+  if (client?.userAgent) {
+    const parser = new UAParser(client?.userAgent)
+    const deviceType = parser.getDevice().type || 'desktop'
+    const browserName = parser.getBrowser().name || ''
+    hashInput = `${deviceType} - ${browserName}`
+  }
+  const hashOutput = await sha256(hashInput)
+  return hashOutput
+}
 
 export default async function (manager: Manager, client: Client) {
-  // function to use sha256
-  async function sha256(message: string) {
-    const msgUint8 = new TextEncoder().encode(message)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-    return hashHex
-  }
-
   // define route to fetch and cache images from css
   const CSSRoute = manager.route('/css/rsrc/', async request => {
     const url = new URL(request.url)
@@ -86,7 +100,13 @@ export default async function (manager: Manager, client: Client) {
     const cleanUrl = postUrl.origin + postUrl.pathname
 
     const htmlEndpoint = cleanUrl + 'embed/' + isCaptioned(captions)
-    const postHtml = await getHtml(manager, htmlEndpoint, client)
+    const baseHTML = cleanUrl + hashedUserAgent(client)
+    const postHtml = await manager.useCache(
+      `html-${baseHTML}`,
+      () => getHtml(manager, htmlEndpoint, client),
+      600
+    )
+    //
     if (postHtml) {
       const postCss = await getCSS(manager, postHtml, client, CSSRoute)
       const updatedHtml = updateHtml(postHtml, client, imgRoute)

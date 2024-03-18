@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
-    "mustache": "^4.2.0"
+    "mustache": "^4.2.0",
+    "ua-parser-js": "^1.0.37"
   }
 }
