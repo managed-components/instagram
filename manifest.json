@@ -5,11 +5,11 @@
   "icon": "assets/instagram.svg",
   "permissions": {
     "provide_server_functionality": {
-      "description": "This permission is used to facilitate better a user experience.",
+      "description": "This MC is using route to serve images and css from your own domain.",
       "required": true
     },
-    "provide_manager_events": {
-      "description": "This permission is used to facilitate better a user experience.",
+    "server_network_requests": {
+      "description": "This permission is fetching content server-side.",
       "required": true
     }
   }
