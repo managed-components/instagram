@@ -59,7 +59,6 @@ Use the `captions` parameter to determine whether to include post captions. If c
 
   ```html
   <instagram-post
-    component="instagram"
     post-url="https://www.instagram.com/p/C3Sk6d2MTjI/"
     captions="true"
   ></instagram-post>
