@@ -109,7 +109,13 @@ export default async function (manager: Manager, client: Client) {
     //
     if (postHtml) {
       const postCss = await getCSS(manager, postHtml, client, CSSRoute)
-      const updatedHtml = updateHtml(postHtml, client, imgRoute)
+      const updatedHtml = await updateHtml(
+        manager,
+        postHtml,
+        client,
+        baseHTML,
+        imgRoute
+      )
       const output = mustache.render(updatedHtml, {
         'post-css': postCss,
       })

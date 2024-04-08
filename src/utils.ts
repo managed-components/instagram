@@ -159,45 +159,48 @@ export async function getHtml(
 }
 
 // function to update the html
-export function updateHtml(
+export async function updateHtml(
+  manager: Manager,
   postHtml: string,
   client: Client,
-  imgRoute?: string
+  baseHTML: string,
+  imgRoute?: string,
 ) {
-  const $ = cheerio.load(postHtml)
+  const updatedHtml = await manager.useCache(
+    `html-${baseHTML}-${client.url.hostname}`,
+    () => {
+      const $ = cheerio.load(postHtml)
 
-  $('link, script').remove() // remove scripts from html
+      $('link, script').remove() // remove scripts from html
 
-  $('img[src*="scontent.cdninstagram.com"]').each((i, el) => {
-    const img = $(el)
-    const src = img.attr('src')
-    if (src) {
-      const newSrc = src.replace(
-        /^https:\/\/scontent.cdninstagram.com\/(.*)$/,
-        (_match, path) =>
-          `${hostName(client)}${imgRoute}?q=` + encodeURIComponent(path)
-      )
-      img.attr('src', newSrc.replace(/%3Fq=/, '?q='))
-    }
+      $('img[src*="scontent.cdninstagram.com"]').each((i, el) => {
+        const img = $(el)
+        const src = img.attr('src')!
+        const newSrc = src.replace(
+          /^https:\/\/scontent.cdninstagram.com\/(.*)$/,
+          (_match, path) =>
+            `${hostName(client)}${imgRoute}?q=` + encodeURIComponent(path)
+        )
+        img.attr('src', newSrc) 
 
-    const srcset = img.attr('srcset')
-    if (srcset) {
-      const newSrcset = srcset
-        .split(',')
-        .map(part => {
-          const [url, descriptor] = part.trim().split(' ')
-          const newUrl = url.replace(
-            /^https:\/\/scontent.cdninstagram.com\/(.*)$/,
-            (_match, path) =>
-              `${hostName(client)}${imgRoute}?q=` + encodeURIComponent(path)
-          )
-          return `${newUrl} ${descriptor}`
-        })
-        .join(', ')
-      img.attr('srcset', newSrcset.replace(/%3Fq=/, '?q='))
-    }
-  })
-  $('head').append(`<style>
+        const srcset = img.attr('srcset')
+        if (srcset) {
+          const newSrcset = srcset
+            .split(',')
+            .map(part => {
+              const [url, descriptor] = part.trim().split(' ')
+              const newUrl = url.replace(
+                /^https:\/\/scontent.cdninstagram.com\/(.*)$/,
+                (_match, path) =>
+                  `${hostName(client)}${imgRoute}?q=` + encodeURIComponent(path)
+              )
+              return `${newUrl} ${descriptor}`
+            })
+            .join(', ')
+          img.attr('srcset', newSrcset) 
+        }
+      })
+      $('head').append(`<style>
   html {
     background: white;
     max-width: 540px;
@@ -212,21 +215,24 @@ export function updateHtml(
   }
   {{{post-css}}}
 </style>`)
-  $('*').each(function () {
-    const element = $(this)
-    const node = this as any // ?? Not sure how to get rid of this type assertion to any
+      $('*').each(function () {
+        const element = $(this)
+        const node = this as any // ?? Not sure how to get rid of this type assertion to any
 
-    // Iterate over each attribute of the element
-    if (node.attribs) {
-      Object.keys(node.attribs).forEach(attr => {
-        const value = element.attr(attr)
-        // Replace &amp; with & in the attribute value
-        if (value) {
-          element.attr(attr, value.replace(/&amp;/g, '&'))
+        // Iterate over each attribute of the element
+        if (node.attribs) {
+          Object.keys(node.attribs).forEach(attr => {
+            const value = element.attr(attr)
+            // Replace &amp; with & in the attribute value
+            if (value) {
+              element.attr(attr, value.replace(/&amp;/g, '&'))
+            }
+          })
         }
       })
-    }
-  })
-
-  return $.html()
+      return $.html()
+    },
+    600
+  )
+  return updatedHtml
 }
