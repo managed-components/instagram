@@ -91,6 +91,7 @@ export default async function (manager: Manager, client: Client) {
   })
 
   manager.registerEmbed('post', async ({ parameters, client }) => {
+    console.log('🍣🍣🍣🍣 registerEmbed works')
     const captions = parameters['captions'] as string
     const isCaptioned = (captions: string) =>
       captions === 'true' ? 'captioned/' : ''
@@ -108,6 +109,7 @@ export default async function (manager: Manager, client: Client) {
     )
     //
     if (postHtml) {
+      console.log('🍣🍣🍣🍣 if (postHtml) works')
       const postCss = await getCSS(manager, postHtml, client, CSSRoute)
       const updatedHtml = await updateHtml(
         manager,
@@ -119,6 +121,7 @@ export default async function (manager: Manager, client: Client) {
       const output = mustache.render(updatedHtml, {
         'post-css': postCss,
       })
+      console.log('🍣🍣🍣🍣 output: ', output)
       return output
     } else {
       // Return a default string or handle the undefined case more gracefully
