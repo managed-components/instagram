@@ -52,6 +52,7 @@ export async function getImg(
       ) {
         const arrayBuffer = await response.arrayBuffer()
         const base64String = _arrayBufferToBase64(arrayBuffer)
+        console.log('🍣🍣🍣🍣 base64String')
         return base64String
       } else {
         throw new Error('Fetched content is not an image or response is not OK')
@@ -70,6 +71,7 @@ export async function getCSS(
   client: Client,
   CSSRoute?: string
 ) {
+  console.log('🍣🍣🍣🍣 getCSS works')
   // Load HTML string with cheerio
   const $ = cheerio.load(postHtml)
 
@@ -126,6 +128,7 @@ export async function getCSS(
 
   // Fetch and combine CSS, and await the result
   const postCss = await fetchAndCombineCss(cssUrls)
+  console.log('🍣🍣🍣🍣🍣 postCss: ', postCss)
   return postCss
 }
 
@@ -136,6 +139,7 @@ export async function getHtml(
   client: Client
 ) {
   try {
+    console.log('🍣🍣🍣🍣 getHtml works')
     const response = await manager.fetch(htmlEndpoint, {
       headers: {
         accept:
@@ -148,6 +152,7 @@ export async function getHtml(
       method: 'GET',
     })
     if (response?.ok) {
+      console.log('🍣🍣🍣🍣 getHtml response: ', response.text())
       return await response.text()
     } else {
       throw new Error('Failed to fetch HTML content')
@@ -164,7 +169,7 @@ export async function updateHtml(
   postHtml: string,
   client: Client,
   baseHTML: string,
-  imgRoute?: string,
+  imgRoute?: string
 ) {
   const updatedHtml = await manager.useCache(
     `html-${baseHTML}-${client.url.hostname}`,
@@ -181,7 +186,7 @@ export async function updateHtml(
           (_match, path) =>
             `${hostName(client)}${imgRoute}?q=` + encodeURIComponent(path)
         )
-        img.attr('src', newSrc) 
+        img.attr('src', newSrc)
 
         const srcset = img.attr('srcset')
         if (srcset) {
@@ -197,7 +202,7 @@ export async function updateHtml(
               return `${newUrl} ${descriptor}`
             })
             .join(', ')
-          img.attr('srcset', newSrcset) 
+          img.attr('srcset', newSrcset)
         }
       })
       $('head').append(`<style>
