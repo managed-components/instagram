@@ -164,7 +164,7 @@ export async function updateHtml(
   postHtml: string,
   client: Client,
   baseHTML: string,
-  imgRoute?: string,
+  imgRoute?: string
 ) {
   const updatedHtml = await manager.useCache(
     `html-${baseHTML}-${client.url.hostname}`,
@@ -181,7 +181,7 @@ export async function updateHtml(
           (_match, path) =>
             `${hostName(client)}${imgRoute}?q=` + encodeURIComponent(path)
         )
-        img.attr('src', newSrc) 
+        img.attr('src', newSrc)
 
         const srcset = img.attr('srcset')
         if (srcset) {
@@ -197,7 +197,7 @@ export async function updateHtml(
               return `${newUrl} ${descriptor}`
             })
             .join(', ')
-          img.attr('srcset', newSrcset) 
+          img.attr('srcset', newSrcset)
         }
       })
       $('head').append(`<style>
